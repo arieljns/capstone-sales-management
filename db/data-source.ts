@@ -1,5 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
+import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
@@ -8,7 +9,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: 'postgres',
   password: 'admin',
   database: 'capstone_sales',
-  entities: [BeforeMeetingEntity],
+  entities: [BeforeMeetingEntity, AfterMeetingEntity],
   synchronize: true,
   logging: true,
 };

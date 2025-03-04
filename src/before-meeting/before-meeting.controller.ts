@@ -27,12 +27,16 @@ export class BeforeMeetingController {
 
   @Put(':id')
   updateHandler(@Param('id') id: number, @Body() updateData: beforeMeetingDto) {
-    console.log(typeof id);
     return this.beforeMeetingService.updateMeeting(id, updateData);
   }
 
   @Delete(':id')
   deleteHandler(@Param('id') id: number) {
     return this.beforeMeetingService.deleteMeeting(id);
+  }
+
+  @Put(':id/change')
+  updateDb(@Param('id') id: number) {
+    return this.beforeMeetingService.MoveDataToAfterMeeting(id);
   }
 }

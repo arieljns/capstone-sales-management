@@ -2,12 +2,11 @@ import { Module } from '@nestjs/common';
 import { BeforeMeetingController } from './before-meeting.controller';
 import { BeforeMeetingService } from './before-meeting.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { dataSourceOptions } from 'db/data-source';
-import { BeforeMeetingEntity } from './before-meeting.entities'
+import { BeforeMeetingEntity } from './before-meeting.entities';
+import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
 @Module({
   imports: [
-    TypeOrmModule.forRoot(dataSourceOptions),
-    TypeOrmModule.forFeature([BeforeMeetingEntity]),
+    TypeOrmModule.forFeature([BeforeMeetingEntity, AfterMeetingEntity]),
   ],
   controllers: [BeforeMeetingController],
   providers: [BeforeMeetingService],
