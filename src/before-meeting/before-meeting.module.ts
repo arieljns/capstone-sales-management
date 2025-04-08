@@ -9,6 +9,7 @@ import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
     TypeOrmModule.forFeature([BeforeMeetingEntity, AfterMeetingEntity]),
   ],
   controllers: [BeforeMeetingController],
-  providers: [BeforeMeetingService],
+  providers: [BeforeMeetingService, BeforeMeetingEntity],
+  exports: [BeforeMeetingEntity],
 })
 export class BeforeMeetingModule {}
