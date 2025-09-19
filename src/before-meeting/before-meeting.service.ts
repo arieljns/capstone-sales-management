@@ -3,14 +3,11 @@ import { beforeMeetingDto } from './before-meeting.dto';
 import { BeforeMeetingEntity } from './before-meeting.entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
+import { csvHandlerDto } from './csv-upload.dto';
 
 @Injectable()
 export class BeforeMeetingService {
   constructor(
-    @InjectRepository(AfterMeetingEntity)
-    private AfterMeetingRepo: Repository<AfterMeetingEntity>,
-
     @InjectRepository(BeforeMeetingEntity)
     private beforeMeetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
@@ -18,23 +15,63 @@ export class BeforeMeetingService {
     return await this.beforeMeetingRepo.find();
   }
 
+  async getMeetingById(id: string): Promise<BeforeMeetingEntity> {
+    try {
+      const getMeetingById = await this.beforeMeetingRepo.findOne({
+        where: { id },
+      });
+      if (!getMeetingById) {
+        throw new Error(`Meeting with id ${id} not found`);
+      }
+      return getMeetingById;
+    } catch (error) {
+      console.error('Error fetching meeting by ID:', error);
+      throw new Error('An error occurred while fetching the meeting');
+    }
+  }
+
+  async moveMeetingStage(id: string): Promise<BeforeMeetingEntity> {
+    try {
+      const meeting = await this.beforeMeetingRepo.findOne({ where: { id } });
+      if (!meeting) {
+        throw new Error('no meeting found');
+      }
+      meeting.isMeetingStage = true;
+      await this.beforeMeetingRepo.save(meeting);
+      return meeting;
+    } catch (error) {
+      console.error('Error moving meeting stage:', error);
+      throw new Error('An error occurred while moving the meeting stage');
+    }
+  }
+
   async createMeeting(
-    beforeMeetingForm: beforeMeetingDto,
+    beforeMeetingForms: csvHandlerDto[] | beforeMeetingDto,
   ): Promise<Record<string, any>> {
     try {
-      const newMeeting = this.beforeMeetingRepo.create(beforeMeetingForm);
-      return await this.beforeMeetingRepo.save(newMeeting);
+      console.log('Creating meeting(s):', beforeMeetingForms);
+      const formsArray = Array.isArray(beforeMeetingForms)
+        ? beforeMeetingForms
+        : [beforeMeetingForms];
+      const newMeetings = this.beforeMeetingRepo.create(formsArray);
+      const savedMeetings = await this.beforeMeetingRepo.save(newMeetings);
+
+      return {
+        success: true,
+        data: savedMeetings,
+      };
     } catch (error) {
       console.error(error);
       return {
         success: false,
-        message: 'Failed to create meeting',
+        message: 'Failed to create meeting(s)',
+        error: error.message,
       };
     }
   }
 
   async updateMeeting(
-    id: number,
+    id: string,
     updateData: Partial<BeforeMeetingEntity>,
   ): Promise<BeforeMeetingEntity> {
     try {
@@ -76,36 +113,6 @@ export class BeforeMeetingService {
       if (error) {
         throw new Error('there are some issue when deleting the meeting');
       }
-    }
-  }
-
-  async MoveDataToAfterMeeting(id: number): Promise<AfterMeetingEntity> {
-    try {
-      const searchData = await this.beforeMeetingRepo.findOne({
-        where: { id },
-      });
-
-      if (!searchData) {
-        console.log('No data available');
-        throw new Error('No data available');
-      }
-
-      const newAfterMeetingData = this.AfterMeetingRepo.create({
-        namaPerusahaan: searchData.namaPerusahaan,
-        namaPic: searchData.namaPic,
-        jabatanPic: searchData.jabatanPic,
-        jumlahKaryawan: searchData.jumlahKaryawan,
-        sistem: searchData.sistem,
-        createdAt: searchData.createdAt,
-      });
-
-      const savedAfterMeetingData =
-        await this.AfterMeetingRepo.save(newAfterMeetingData);
-      await this.beforeMeetingRepo.delete(id);
-      return savedAfterMeetingData;
-    } catch (error) {
-      console.error('Error moving data:', error);
-      throw new Error('There was an issue moving the data');
     }
   }
 }

@@ -12,7 +12,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: '*',
-    methods: 'GET, DELETEM, PUT, POST, HEAD',
+    methods: 'GET, DELETE, PUT, POST, HEAD, PATCH',
   });
   await app.listen(process.env.PORT ?? 3000);
 }

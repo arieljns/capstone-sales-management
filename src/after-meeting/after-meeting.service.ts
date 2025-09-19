@@ -3,12 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AfterMeetingEntity } from './after-meeting.entities';
 import { DeleteResult, Repository } from 'typeorm';
 import { afterMeetingDto } from './after-meeting.dto';
+import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 
 @Injectable()
 export class AfterMeetingService {
   constructor(
     @InjectRepository(AfterMeetingEntity)
     private AfterMeetingRepo: Repository<AfterMeetingEntity>,
+
+    @InjectRepository(BeforeMeetingEntity)
+    private beforeMeetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
 
   async getAfterMeetingData(): Promise<AfterMeetingEntity[]> {
@@ -71,5 +75,39 @@ export class AfterMeetingService {
         'there are error when attempting to create after meeting data',
       );
     }
+  }
+
+  async createMeetingDebriefRecord(
+    data: afterMeetingDto,
+  ): Promise<AfterMeetingEntity> {
+    try {
+      const beforeMeetingId = await this.beforeMeetingRepo.findOne({
+        where: { id: data.beforeMeeting },
+      });
+
+      console.log('Before Meeting ID:', beforeMeetingId);
+      if (!beforeMeetingId) {
+        throw new Error('there are no before meeting with related id');
+      }
+      const newMeetings = this.AfterMeetingRepo.create({
+        ...data,
+        beforeMeeting: beforeMeetingId,
+      });
+      return this.AfterMeetingRepo.save(newMeetings);
+    } catch (error) {
+      console.error('error occured while creating debrief record', error);
+      throw new Error(
+        'there are error when attempting to create after meeting data',
+      );
+    }
+  }
+
+  async getMeetingDataJoin() {
+    const result = await this.AfterMeetingRepo.createQueryBuilder(
+      'afterMeeting',
+    )
+      .leftJoinAndSelect('afterMeeting.beforeMeeting', 'beforeMeeting')
+      .getMany();
+    return result;
   }
 }

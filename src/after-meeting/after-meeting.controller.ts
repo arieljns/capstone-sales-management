@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Body, Patch } from '@nestjs/common';
+import { Controller, Delete, Get, Body, Patch, Post } from '@nestjs/common';
 import { AfterMeetingService } from './after-meeting.service';
 import { afterMeetingDto } from './after-meeting.dto';
 import { Param } from '@nestjs/common';
@@ -21,11 +21,22 @@ export class AfterMeetingController {
     return this.afterMeetingService.deleteAfterMeetingData(id);
   }
 
+  @Post()
+  createValidation(@Body() body: afterMeetingDto) {
+    console.log(body);
+    return this.afterMeetingService.createMeetingDebriefRecord(body);
+  }
+
   @Patch(':id')
   createAfterMeetingData(
     @Param('id') id: number,
     @Body() data: afterMeetingDto,
   ) {
     return this.afterMeetingService.createMeetingData(id, data);
+  }
+
+  @Get('test/data')
+  getMeetingDataJoin() {
+    return this.afterMeetingService.getMeetingDataJoin();
   }
 }

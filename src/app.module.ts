@@ -6,13 +6,15 @@ import { AfterMeetingModule } from './after-meeting/after-meeting.module';
 import { dataSourceOptions } from 'db/data-source';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FormBuilderModule } from './form-builder/form-builder.module';
+import { KanbanTicketModule } from './kanban-ticket/kanban-ticket.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions),
     BeforeMeetingModule,
     AfterMeetingModule,
-    FormBuilderModule
+    FormBuilderModule,
+    KanbanTicketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

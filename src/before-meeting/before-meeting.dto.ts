@@ -1,23 +1,73 @@
-import { IsString, IsNumber, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsArray,
+  IsDate,
+  IsOptional,
+  IsPositive,
+  Min,
+} from 'class-validator';
 
 export class beforeMeetingDto {
-  @IsString()
   @IsNotEmpty()
-  namaPerusahaan: string;
-
   @IsString()
-  @IsNotEmpty()
-  namaPic: string;
+  name: string;
 
+  @IsNotEmpty()
   @IsString()
-  @IsNotEmpty()
-  jabatanPic: string;
+  desc: string;
 
+  @IsNotEmpty()
   @IsNumber()
-  @IsNotEmpty()
-  jumlahKaryawan: number;
+  @Min(0)
+  totalTask: number;
 
-  @IsString()
   @IsNotEmpty()
-  sistem: string;
+  @IsNumber()
+  @Min(0)
+  completedTask: number;
+
+  @IsNotEmpty()
+  @IsString()
+  companySize: string;
+
+  @IsNotEmpty()
+  @IsString()
+  picName: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @IsString({ each: true })
+  picRole: string[];
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @IsString({ each: true })
+  currentSystem: string[];
+
+  @IsNotEmpty()
+  @IsArray()
+  @IsString({ each: true })
+  systemRequirement: string[];
+
+  @IsNotEmpty()
+  @IsNumber()
+  @IsPositive()
+  budget: number;
+
+  @IsNotEmpty()
+  @IsArray()
+  @IsString({ each: true })
+  category: string[];
+
+  @IsNotEmpty()
+  @Type(() => Date)
+  @IsDate()
+  meetingDate: Date;
 }
