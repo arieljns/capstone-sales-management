@@ -1,16 +1,23 @@
 import { KanbanTicketEntity } from 'src/kanban-ticket/kanban-ticket.entities';
+import { UserEntity } from 'src/users/users.entities';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   OneToOne,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('before_meeting')
 export class BeforeMeetingEntity {
   @PrimaryGeneratedColumn()
   id: string;
+
+  @ManyToOne(() => UserEntity, (user) => user.beforeMeetings)
+  @JoinColumn({ name: 'userId' })
+  user: UserEntity;
 
   @Column()
   name: string;

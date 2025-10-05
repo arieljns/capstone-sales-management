@@ -5,14 +5,19 @@ import {
   CreateDateColumn,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { KanbanTicketEntity } from 'src/kanban-ticket/kanban-ticket.entities';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
-
+import { UserEntity } from 'src/users/users.entities';
 @Entity('validation')
 export class AfterMeetingEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ManyToOne(() => UserEntity, (user) => user.afterMeetings)
+  @JoinColumn({ name: 'userId' })
+  user: UserEntity;
 
   @Column()
   sentiment: string;

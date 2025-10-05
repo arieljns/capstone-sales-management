@@ -11,8 +11,11 @@ export class BeforeMeetingService {
     @InjectRepository(BeforeMeetingEntity)
     private beforeMeetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
-  async getMeetings(): Promise<BeforeMeetingEntity[]> {
-    return await this.beforeMeetingRepo.find();
+  async getMeetings(userId): Promise<BeforeMeetingEntity[]> {
+    console.log(typeof userId, 'ini user id dari service');
+    return await this.beforeMeetingRepo.find({
+      where: { user: { id: userId } },
+    });
   }
 
   async getMeetingById(id: string): Promise<BeforeMeetingEntity> {
@@ -47,14 +50,20 @@ export class BeforeMeetingService {
 
   async createMeeting(
     beforeMeetingForms: csvHandlerDto[] | beforeMeetingDto,
+    userId,
   ): Promise<Record<string, any>> {
     try {
-      console.log('Creating meeting(s):', beforeMeetingForms);
+      console.log('Creating meeting(s):', beforeMeetingForms, userId);
       const formsArray = Array.isArray(beforeMeetingForms)
         ? beforeMeetingForms
         : [beforeMeetingForms];
-      const newMeetings = this.beforeMeetingRepo.create(formsArray);
-      const savedMeetings = await this.beforeMeetingRepo.save(newMeetings);
+      const newMeetings = this.beforeMeetingRepo.create(
+        formsArray.map((form) => ({
+          ...form,
+          user: { id: userId },
+        })),
+      );
+      const savedMeetings = await this.beforeMeetingRepo.insert(newMeetings);
 
       return {
         success: true,

@@ -1,14 +1,32 @@
-import { Controller, Delete, Get, Body, Patch, Post } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Body,
+  Patch,
+  Post,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AfterMeetingService } from './after-meeting.service';
 import { afterMeetingDto } from './after-meeting.dto';
 import { Param } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
+import { RolesGuard } from 'src/auth/guards/roles.guards';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+
 @Controller('/after')
 export class AfterMeetingController {
   constructor(private readonly afterMeetingService: AfterMeetingService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
   @Get()
-  handleRequest() {
-    return this.afterMeetingService.getAfterMeetingData();
+  handleRequest(@Req() req) {
+    if (!req.user.userId)
+      throw new UnauthorizedException('User ID is missing in the request');
+    return this.afterMeetingService.getAfterMeetingData(req.user.userId);
   }
 
   @Get(':id')

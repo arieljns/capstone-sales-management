@@ -1,9 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AfterMeetingEntity } from './after-meeting.entities';
 import { DeleteResult, Repository } from 'typeorm';
 import { afterMeetingDto } from './after-meeting.dto';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
+import { KanbanTicketService } from 'src/kanban-ticket/kanban-ticket.service';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 @Injectable()
 export class AfterMeetingService {
@@ -13,18 +22,22 @@ export class AfterMeetingService {
 
     @InjectRepository(BeforeMeetingEntity)
     private beforeMeetingRepo: Repository<BeforeMeetingEntity>,
+
+    private kanbanTicketService: KanbanTicketService,
   ) {}
 
-  async getAfterMeetingData(): Promise<AfterMeetingEntity[]> {
+  async getAfterMeetingData(userId): Promise<AfterMeetingEntity[]> {
     try {
-      const getMeetingData = await this.AfterMeetingRepo.find();
+      const getMeetingData = await this.AfterMeetingRepo.find({
+        where: { user: { id: userId } },
+      });
       return getMeetingData;
     } catch (error) {
       console.error(
         'there are an error when trying to get meeting Data:',
         error,
       );
-      throw new Error('couldnt get meeting Data');
+      throw new UnauthorizedException('couldnt get meeting Data');
     }
   }
 
@@ -34,12 +47,14 @@ export class AfterMeetingService {
         where: { id },
       });
       if (!afterMeetingData) {
-        throw new Error('there are no data with coressponding id');
+        throw new NotFoundException('there are no data with coressponding id');
       }
       return afterMeetingData;
     } catch (error) {
       console.error('there are issue when creating after meeting data:', error);
-      throw new Error('there are some issue when creating data ');
+      throw new UnauthorizedException(
+        'there are some issue when creating data ',
+      );
     }
   }
 
@@ -47,7 +62,7 @@ export class AfterMeetingService {
     try {
       const deleteData = await this.AfterMeetingRepo.delete(id);
       if (!deleteData) {
-        throw new Error('there are no meeting with this id');
+        throw new NotFoundException('there are no meeting with this id');
       }
       return deleteData;
     } catch (error) {
@@ -65,7 +80,7 @@ export class AfterMeetingService {
         where: { id },
       });
       if (!meetingData) {
-        throw new Error('there are no data with related id');
+        throw new NotFoundException('there are no data with related id');
       }
       Object.assign(meetingData, data);
       return this.AfterMeetingRepo.save(meetingData);
@@ -81,23 +96,30 @@ export class AfterMeetingService {
     data: afterMeetingDto,
   ): Promise<AfterMeetingEntity> {
     try {
-      const beforeMeetingId = await this.beforeMeetingRepo.findOne({
+      const beforeMeeting = await this.beforeMeetingRepo.findOne({
         where: { id: data.beforeMeeting },
       });
 
-      console.log('Before Meeting ID:', beforeMeetingId);
-      if (!beforeMeetingId) {
-        throw new Error('there are no before meeting with related id');
+      if (!beforeMeeting) {
+        throw new BadRequestException('No before meeting found with this ID');
       }
-      const newMeetings = this.AfterMeetingRepo.create({
+
+      const newMeeting = this.AfterMeetingRepo.create({
         ...data,
-        beforeMeeting: beforeMeetingId,
+        beforeMeeting,
       });
-      return this.AfterMeetingRepo.save(newMeetings);
-    } catch (error) {
-      console.error('error occured while creating debrief record', error);
-      throw new Error(
-        'there are error when attempting to create after meeting data',
+      const savedMeeting = await this.AfterMeetingRepo.save(newMeeting);
+
+      await this.kanbanTicketService.createKanbanTicket({
+        afterMeeting: savedMeeting.id,
+        beforeMeeting: beforeMeeting.id,
+      });
+
+      return savedMeeting;
+    } catch (error: unknown) {
+      console.error('Error in createMeetingDebriefRecord:', error);
+      throw new InternalServerErrorException(
+        'Failed to create meeting debrief record',
       );
     }
   }

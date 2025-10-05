@@ -16,6 +16,6 @@ import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities'
   ],
   controllers: [KanbanTicketController],
   providers: [KanbanTicketService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, KanbanTicketService],
 })
 export class KanbanTicketModule {}
