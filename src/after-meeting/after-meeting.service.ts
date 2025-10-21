@@ -26,18 +26,19 @@ export class AfterMeetingService {
     private kanbanTicketService: KanbanTicketService,
   ) {}
 
-  async getAfterMeetingData(userId): Promise<AfterMeetingEntity[]> {
+  async getMeetingDataWithJoin(userId: string): Promise<any[]> {
     try {
-      const getMeetingData = await this.AfterMeetingRepo.find({
-        where: { user: { id: userId } },
-      });
-      return getMeetingData;
+      const qb = this.AfterMeetingRepo.createQueryBuilder('afterMeeting')
+        .leftJoinAndSelect('afterMeeting.user', 'user')
+        .leftJoin('afterMeeting.beforeMeeting', 'beforeMeeting')
+        .addSelect(['beforeMeeting.id', 'beforeMeeting.name'])
+        .where('user.id = :userId', { userId });
+
+      const results = await qb.getMany();
+      return results;
     } catch (error) {
-      console.error(
-        'there are an error when trying to get meeting Data:',
-        error,
-      );
-      throw new UnauthorizedException('couldnt get meeting Data');
+      console.error('Error joining afterMeeting and beforeMeeting:', error);
+      throw new UnauthorizedException('Could not get meeting data');
     }
   }
 
@@ -94,6 +95,7 @@ export class AfterMeetingService {
 
   async createMeetingDebriefRecord(
     data: afterMeetingDto,
+    userId,
   ): Promise<AfterMeetingEntity> {
     try {
       const beforeMeeting = await this.beforeMeetingRepo.findOne({
@@ -107,9 +109,9 @@ export class AfterMeetingService {
       const newMeeting = this.AfterMeetingRepo.create({
         ...data,
         beforeMeeting,
+        user: { id: userId },
       });
       const savedMeeting = await this.AfterMeetingRepo.save(newMeeting);
-
       await this.kanbanTicketService.createKanbanTicket({
         afterMeeting: savedMeeting.id,
         beforeMeeting: beforeMeeting.id,

@@ -40,7 +40,6 @@ export class AfterMeetingEntity {
   @Column({ type: 'timestamp' })
   expiredDate: Date;
 
-  // Store array of products as JSON
   @Column({ type: 'jsonb' })
   products: {
     id: string;
@@ -58,6 +57,15 @@ export class AfterMeetingEntity {
 
   @Column()
   termIn: string;
+
+  @Column()
+  totalAmount: number;
+
+  @Column()
+  mrr: number;
+
+  @Column({ type: 'boolean', default: false })
+  isFormSubmitted: boolean;
 
   @OneToOne(() => KanbanTicketEntity, (kanban) => kanban.afterMeeting)
   kanbanTicket: KanbanTicketEntity;

@@ -69,6 +69,14 @@ export class afterMeetingDto {
   @Min(1, { message: 'Total Employee must exist' })
   totalEmployee: number;
 
+  @IsNumber()
+  @Min(1, { message: 'must have total amount ' })
+  totalAmount: number;
+
+  @IsNumber()
+  @Min(1, { message: 'must have mrr value' })
+  mrr: number;
+
   @IsString()
   @IsNotEmpty({ message: 'Discount Rate Required' })
   discountRate: string;

@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KanbanTicketEntity, StageStatus } from './kanban-ticket.entities';
 import { Repository } from 'typeorm';
 import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 import { Ticket, Columns } from 'src/common/type/kanban.type';
+import { UpdateKanbanDto } from './dto/update-kanban.dto';
 
 @Injectable()
 export class KanbanTicketService {
@@ -86,11 +87,37 @@ export class KanbanTicketService {
 
     const ticket = this.kanbanTicketRepo.create({
       stage: StageStatus.QUOTATION_SENT,
-      dealValue: 100000,
+      dealValue: afterMeetingData.totalAmount,
       afterMeeting: afterMeetingData,
       beforeMeeting: beforeMeetingData,
     });
     const kanbanTicketData = await this.kanbanTicketRepo.save(ticket);
     return kanbanTicketData;
+  }
+
+  async updateFunnelPosition(
+    body: UpdateKanbanDto,
+    userId,
+  ): Promise<KanbanTicketEntity> {
+    const { destinationStage, newIndex, sourceStage, ticketId } = body;
+    console.log('this is the user that make the request:', userId);
+    const ticket = await this.kanbanTicketRepo
+      .createQueryBuilder('ticket')
+      .leftJoinAndSelect('ticket.beforeMeeting', 'bm')
+      .where('ticket.id = :ticketId', { ticketId })
+      .andWhere('bm.userId = :userId', { userId })
+      .getOne();
+
+    if (!ticket) {
+      throw new NotFoundException(
+        `there are no ticket with this id: ${userId}`,
+      );
+    }
+
+    ticket.stage = destinationStage;
+
+    await this.kanbanTicketRepo.save(ticket);
+
+    return ticket;
   }
 }
