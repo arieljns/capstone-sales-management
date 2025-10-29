@@ -42,6 +42,22 @@ export class AfterMeetingService {
     }
   }
 
+  async getAllAfterMeetingDataByUser(
+    userId: string,
+  ): Promise<AfterMeetingEntity[]> {
+    try {
+      const results = await this.AfterMeetingRepo.find({
+        where: { user: { id: userId } },
+        order: { createdAt: 'DESC' },
+      });
+
+      return results;
+    } catch (error) {
+      console.error('Error fetching user afterMeeting data:', error);
+      throw new UnauthorizedException('Could not fetch after meeting data');
+    }
+  }
+
   async findAfterMeetingDataById(id: number): Promise<AfterMeetingEntity> {
     try {
       const afterMeetingData = await this.AfterMeetingRepo.findOne({

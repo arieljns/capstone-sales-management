@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AfterMeetingService } from './after-meeting.service';
 import { afterMeetingDto } from './after-meeting.dto';
@@ -44,7 +45,6 @@ export class AfterMeetingController {
   @Roles('user')
   @Post()
   createValidation(@Body() body: afterMeetingDto, @Req() req) {
-    console.log(body);
     return this.afterMeetingService.createMeetingDebriefRecord(
       body,
       req.user.userId,
@@ -62,5 +62,16 @@ export class AfterMeetingController {
   @Get('test/data')
   getMeetingDataJoin() {
     return this.afterMeetingService.getMeetingDataJoin();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  @Get('user/data')
+  async getAllAfterMeetingDataByUser(@Req() req) {
+    const userId = req.user.userId;
+    if (!userId) {
+      throw new Error('there are no user id');
+    }
+    return await this.afterMeetingService.getAllAfterMeetingDataByUser(userId);
   }
 }

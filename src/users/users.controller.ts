@@ -54,4 +54,9 @@ export class UsersController {
   whoAmI(@Request() req) {
     return req.user;
   }
+
+  @Get('lists')
+  async getAllUsers() {
+    return this.usersService.getUserProfile();
+  }
 }

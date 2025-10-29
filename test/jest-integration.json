@@ -1,0 +1,18 @@
+{
+  "rootDir": "../",
+  "displayName": "integration",
+  "testMatch": ["<rootDir>/test/**/*.integration-spec.ts"],
+  "setupFiles": ["<rootDir>/test/setup-env.ts"],
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^db/(.*)$": "<rootDir>/db/$1"
+  },
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "testEnvironment": "node",
+  "verbose": true
+  ,
+  "maxWorkers": 1
+}
