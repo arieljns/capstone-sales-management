@@ -60,7 +60,7 @@ export class BeforeMeetingController {
   @Post('/csv')
   csvHandler(@Body() csvData: csvHandlerDto[], @Req() req) {
     console.log(csvData);
-    return this.beforeMeetingService.createMeeting(csvData, req.user.id);
+    return this.beforeMeetingService.createMeeting(csvData, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
