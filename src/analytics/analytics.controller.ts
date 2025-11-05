@@ -15,6 +15,11 @@ export class AnalyticsController {
     return this.analyticsService.getSalesFunnel();
   }
 
+  @Get('user')
+  getUserAnalytics() {
+    return this.analyticsService.getUserAnalytics();
+  }
+
   @Get('revenue')
   getRevenueTrend() {
     return this.analyticsService.getRevenueTrend();
@@ -28,6 +33,11 @@ export class AnalyticsController {
   @Get('salesmen/:id')
   getSalesmanAnalytics(@Param('id') id: string) {
     return this.analyticsService.getSalesmanAnalytics(id);
+  }
+
+  @Get('/team-metrics')
+  getTeamMetricsAnalytics() {
+    return this.analyticsService.getTeamMemberAnalytics();
   }
 
   @Post('refresh')

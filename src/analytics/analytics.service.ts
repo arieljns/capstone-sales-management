@@ -52,12 +52,28 @@ export class AnalyticsService {
     return this.dataSource.query('SELECT * FROM public.mv_salesman_analytics');
   }
 
+  async getTeamMemberAnalytics(userId?: string): Promise<any[]> {
+    if (userId) {
+      return this.dataSource.query(
+        'SELECT * FROM public.mv_member_analytics WHERE user_id = $1',
+        [userId],
+      );
+    }
+    return this.dataSource.query('SELECT * FROM public.mv_member_analytics');
+  }
+
+  async getUserAnalytics(): Promise<any[]> {
+    return this.dataSource.query('SELECT * FROM mv_user_analytics');
+  }
+
   async refreshAll(): Promise<void> {
     const views = [
       'mv_manager_analytics',
       'mv_sales_funnel',
       'mv_revenue_trend',
       'mv_salesman_analytics',
+      'team_member_analytics',
+      'mv_user_analytics',
     ];
     for (const v of views) {
       await this.dataSource.query(`REFRESH MATERIALIZED VIEW ${v}`);

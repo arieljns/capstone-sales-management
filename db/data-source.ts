@@ -1,8 +1,8 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
-import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
-import { KanbanTicketEntity } from 'src/kanban-ticket/kanban-ticket.entities';
-import { UserEntity } from 'src/users/users.entities';
+import { BeforeMeetingEntity } from '../src/before-meeting/before-meeting.entities';
+import { AfterMeetingEntity } from '../src/after-meeting/after-meeting.entities';
+import { KanbanTicketEntity } from '../src/kanban-ticket/kanban-ticket.entities';
+import { UserEntity } from '../src/users/users.entities';
 
 // Allow environment-driven configuration (supports a separate test DB)
 const isTest = process.env.NODE_ENV === 'test';
