@@ -35,9 +35,15 @@ export class AnalyticsController {
     return this.analyticsService.getSalesmanAnalytics(id);
   }
 
-  @Get('/team-metrics')
-  getTeamMetricsAnalytics() {
-    return this.analyticsService.getTeamMemberAnalytics();
+  @Get('team-metrics')
+  getTeamMetrics() {
+    return this.analyticsService.getTeamMemberMetricsById();
+  }
+
+  @Get('team-metrics/:userId')
+  getTeamMember(@Param('userId') userUuid: string) {
+    console.log('Requested userId:', userUuid);
+    return this.analyticsService.getTeamMemberMetricsById(userUuid);
   }
 
   @Post('refresh')

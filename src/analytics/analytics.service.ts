@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { MemberMetricDto } from './dto/member-metric.dto';
 
 @Injectable()
 export class AnalyticsService {
@@ -52,14 +53,44 @@ export class AnalyticsService {
     return this.dataSource.query('SELECT * FROM public.mv_salesman_analytics');
   }
 
-  async getTeamMemberAnalytics(userId?: string): Promise<any[]> {
-    if (userId) {
-      return this.dataSource.query(
-        'SELECT * FROM public.mv_member_analytics WHERE user_id = $1',
-        [userId],
-      );
+  async getTeamMemberMetricsById(userUuid?: string): Promise<MemberMetricDto[]> {
+    let query = `SELECT
+      user_uuid AS "userUuid",
+      user_id AS "userId",
+      email,
+      name,
+      initials,
+      lead_count AS "leadCount",
+      total_deals AS "totalDeals",
+      closed_won AS "closedWon",
+      total_revenue AS "totalRevenue",
+      total_mrr AS "totalMrr",
+      conversion_rate AS "conversionRate"
+    FROM public.mv_member_metrics`;
+    const params: string[] = [];
+
+    if (userUuid) {
+      query += ' WHERE user_uuid = $1::uuid';
+      params.push(userUuid);
     }
-    return this.dataSource.query('SELECT * FROM public.mv_member_analytics');
+
+    query += ' ORDER BY user_id';
+
+    const rows = await this.dataSource.query(query, params);
+
+    return rows.map((row) => ({
+      userUuid: row.userUuid,
+      userId: row.userId,
+      email: row.email,
+      name: row.name,
+      initials: row.initials,
+      leadCount: Number(row.leadCount ?? 0),
+      totalDeals: Number(row.totalDeals ?? 0),
+      closedWon: Number(row.closedWon ?? 0),
+      totalRevenue: Number(row.totalRevenue ?? 0),
+      totalMrr: Number(row.totalMrr ?? 0),
+      conversionRate: Number(row.conversionRate ?? 0),
+    }));
   }
 
   async getUserAnalytics(): Promise<any[]> {
@@ -72,7 +103,8 @@ export class AnalyticsService {
       'mv_sales_funnel',
       'mv_revenue_trend',
       'mv_salesman_analytics',
-      'team_member_analytics',
+      'mv_member_analytics',
+      'mv_member_metrics',
       'mv_user_analytics',
     ];
     for (const v of views) {

@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -54,6 +59,30 @@ export class UsersService {
       role: role,
     });
     return await this.usersRepo.save(registMember);
+  }
+
+  async deleteUserSafely(userId: string): Promise<void> {
+    const user = await this.usersRepo.findOne({
+      where: { id: userId },
+      relations: ['beforeMeetings', 'afterMeetings', 'kanbans'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    const hasAssociations =
+      (user.beforeMeetings?.length ?? 0) > 0 ||
+      (user.afterMeetings?.length ?? 0) > 0 ||
+      (user.kanbans?.length ?? 0) > 0;
+
+    if (hasAssociations) {
+      throw new BadRequestException(
+        'User cannot be deleted while associated records exist',
+      );
+    }
+
+    await this.usersRepo.remove(user);
   }
 }
 

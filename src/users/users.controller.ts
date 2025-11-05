@@ -5,6 +5,8 @@ import {
   UseGuards,
   Request,
   Get,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guards';
@@ -58,5 +60,11 @@ export class UsersController {
   @Get('lists')
   async getAllUsers() {
     return this.usersService.getUserProfile();
+  }
+
+  @Delete('delete/:id')
+  async deleteUser(@Param('id') id: string) {
+    await this.usersService.deleteUserSafely(id);
+    return { message: 'User deleted successfully' };
   }
 }
