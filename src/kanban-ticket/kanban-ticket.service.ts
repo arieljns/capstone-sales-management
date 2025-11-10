@@ -70,9 +70,11 @@ export class KanbanTicketService {
   async createKanbanTicket({
     afterMeeting,
     beforeMeeting,
+    userId,
   }: {
     afterMeeting: number;
     beforeMeeting: string;
+    userId: string;
   }): Promise<KanbanTicketEntity> {
     const afterMeetingData = await this.afterMeetingRepo.findOne({
       where: { id: afterMeeting },
@@ -90,6 +92,7 @@ export class KanbanTicketService {
       dealValue: afterMeetingData.totalAmount,
       afterMeeting: afterMeetingData,
       beforeMeeting: beforeMeetingData,
+      user: { id: userId } as any,
     });
     const kanbanTicketData = await this.kanbanTicketRepo.save(ticket);
     return kanbanTicketData;

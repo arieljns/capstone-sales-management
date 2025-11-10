@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { UsersService } from 'src/users/users.service';
 import { BeforeMeetingService } from 'src/before-meeting/before-meeting.service';
-import { ensureTestDb, createTestUser } from './helpers';
+import { ensureTestDb, createTestUser, resetTestDatabase } from './helpers';
 
 jest.setTimeout(30000);
 
@@ -16,6 +16,7 @@ describe('Integration: BeforeMeetingService', () => {
 
   beforeAll(async () => {
     await ensureTestDb();
+    await resetTestDatabase();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
@@ -27,6 +28,7 @@ describe('Integration: BeforeMeetingService', () => {
 
   afterAll(async () => {
     await app.close();
+    await resetTestDatabase();
   });
 
   it('creates, reads, updates, moves stage, and deletes meeting', async () => {
@@ -65,5 +67,9 @@ describe('Integration: BeforeMeetingService', () => {
 
     const del = await before.deleteMeeting(Number(meetingId));
     expect((del as any).message).toContain('deleted');
+
+    await expect(before.getMeetingById(meetingId)).rejects.toThrow(
+      'An error occurred while fetching the meeting',
+    );
   });
 });

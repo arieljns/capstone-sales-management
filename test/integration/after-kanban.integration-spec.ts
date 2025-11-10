@@ -1,11 +1,11 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { UsersService } from 'src/users/users.service';
 import { BeforeMeetingService } from 'src/before-meeting/before-meeting.service';
 import { AfterMeetingService } from 'src/after-meeting/after-meeting.service';
 import { KanbanTicketService } from 'src/kanban-ticket/kanban-ticket.service';
-import { ensureTestDb, createTestUser } from './helpers';
+import { ensureTestDb, createTestUser, resetTestDatabase } from './helpers';
 import { StageStatus } from 'src/kanban-ticket/kanban-ticket.entities';
 
 jest.setTimeout(30000);
@@ -21,7 +21,10 @@ describe('Integration: AfterMeeting + KanbanTicket services', () => {
 
   beforeAll(async () => {
     await ensureTestDb();
-    const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    await resetTestDatabase();
+    const mod = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
     app = mod.createNestApplication();
     await app.init();
     users = app.get(UsersService);
@@ -54,6 +57,7 @@ describe('Integration: AfterMeeting + KanbanTicket services', () => {
 
   afterAll(async () => {
     await app.close();
+    await resetTestDatabase();
   });
 
   it('creates after-meeting debrief and kanban ticket, updates funnel, lists grouped tickets', async () => {
@@ -67,7 +71,9 @@ describe('Integration: AfterMeeting + KanbanTicket services', () => {
         decisionMaker: 'Alex',
         activationAgreement: 'agreed',
         expiredDate: new Date() as any,
-        products: [{ id: 'p1', name: 'Sub', price: 100, img: '', productCode: 'S1' }],
+        products: [
+          { id: 'p1', name: 'Sub', price: 100, img: '', productCode: 'S1' },
+        ],
         totalEmployee: 10,
         discountRate: '0',
         termIn: '12m',
@@ -79,15 +85,20 @@ describe('Integration: AfterMeeting + KanbanTicket services', () => {
     );
     expect(saved.id).toBeDefined();
 
-    // Verify ticket grouped under QUOTATION_SENT
     const grouped = await kanban.getKanbanTicketData(userId);
     expect(Object.keys(grouped)).toEqual(
-      expect.arrayContaining(['QuotationSent', 'FollowUp', 'Negotiation', 'DecisionPending', 'ClosedWon', 'ClosedLost'])
+      expect.arrayContaining([
+        'QuotationSent',
+        'FollowUp',
+        'Negotiation',
+        'DecisionPending',
+        'ClosedWon',
+        'ClosedLost',
+      ]),
     );
     const quoteBucket = grouped['QuotationSent'];
     expect(quoteBucket.length).toBeGreaterThan(0);
 
-    // Move to Negotiation
     const ticket = quoteBucket[0];
     const updated = await kanban.updateFunnelPosition(
       {
@@ -99,6 +110,17 @@ describe('Integration: AfterMeeting + KanbanTicket services', () => {
       userId,
     );
     expect(updated.stage).toBe(StageStatus.NEGOTIATION);
+
+    await expect(
+      kanban.updateFunnelPosition(
+        {
+          destinationStage: StageStatus.CLOSED_LOST as any,
+          newIndex: 0,
+          sourceStage: StageStatus.QUOTATION_SENT as any,
+          ticketId: 999999,
+        } as any,
+        userId,
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
-

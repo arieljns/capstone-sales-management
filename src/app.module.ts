@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { RolesGuard } from './auth/guards/roles.guards';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { CrmModule } from './crm/crm.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     UsersModule,
     AuthModule,
     AnalyticsModule,
+    CrmModule,
   ],
   controllers: [AppController],
   providers: [AppService],

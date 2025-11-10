@@ -53,7 +53,9 @@ export class AnalyticsService {
     return this.dataSource.query('SELECT * FROM public.mv_salesman_analytics');
   }
 
-  async getTeamMemberMetricsById(userUuid?: string): Promise<MemberMetricDto[]> {
+  async getTeamMemberMetricsById(
+    userUuid?: string,
+  ): Promise<MemberMetricDto[]> {
     let query = `SELECT
       user_uuid AS "userUuid",
       user_id AS "userId",
@@ -93,8 +95,60 @@ export class AnalyticsService {
     }));
   }
 
-  async getUserAnalytics(): Promise<any[]> {
-    return this.dataSource.query('SELECT * FROM mv_user_analytics');
+  async getUserAnalytics(userId: string): Promise<any> {
+    console.log(userId);
+    try {
+      const result = await this.dataSource.query(
+        `
+        SELECT 
+          "userId",
+          revenue,
+          target,
+          meetings,
+          sentiment,
+          funnel,
+          deals
+        FROM public.mv_user_dashboard_monthly
+        WHERE "userId" = $1
+        LIMIT 1;
+        `,
+        [userId],
+      );
+
+      if (!result.length) {
+        this.logger.warn(`No dashboard record found for user ${userId}`);
+        return {
+          userId,
+          revenue: {
+            totalRevenue: 0,
+            lostRevenue: 0,
+            conversionRate: 0,
+            trend: [],
+          },
+          target: {
+            targetAmount: 1000000000,
+            achievedAmount: 0,
+            remainingAmount: 1000000000,
+          },
+          meetings: {
+            totalMeetings: 0,
+            completedDebriefs: 0,
+            pendingMeetings: 0,
+          },
+          sentiment: { positive: 0, neutral: 0, negative: 0 },
+          funnel: [],
+          deals: { totalClosedDeals: 0 },
+        };
+      }
+
+      return result[0];
+    } catch (err) {
+      this.logger.error(
+        `Error fetching user dashboard for ${userId}`,
+        err.stack,
+      );
+      throw err;
+    }
   }
 
   async refreshAll(): Promise<void> {

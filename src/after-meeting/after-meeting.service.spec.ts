@@ -59,7 +59,11 @@ describe('AfterMeetingService', () => {
       expect.objectContaining({ beforeMeeting: before, user: { id: 'user-1' } }),
     );
     expect(afterRepo.save).toHaveBeenCalledWith(created);
-    expect(kanban.createKanbanTicket).toHaveBeenCalledWith({ afterMeeting: 10, beforeMeeting: 'bm1' });
+    expect(kanban.createKanbanTicket).toHaveBeenCalledWith({
+      afterMeeting: 10,
+      beforeMeeting: 'bm1',
+      userId: 'user-1',
+    });
     expect(result).toBe(saved);
   });
 

@@ -111,7 +111,7 @@ export class AfterMeetingService {
 
   async createMeetingDebriefRecord(
     data: afterMeetingDto,
-    userId,
+    userId: string,
   ): Promise<AfterMeetingEntity> {
     try {
       const beforeMeeting = await this.beforeMeetingRepo.findOne({
@@ -131,6 +131,7 @@ export class AfterMeetingService {
       await this.kanbanTicketService.createKanbanTicket({
         afterMeeting: savedMeeting.id,
         beforeMeeting: beforeMeeting.id,
+        userId,
       });
 
       return savedMeeting;

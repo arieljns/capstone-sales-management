@@ -33,6 +33,14 @@ export class beforeMeetingDto {
   @IsString()
   companySize: string;
 
+  @IsOptional()
+  @IsString()
+  picWhatsapp?: string;
+
+  @IsOptional()
+  @IsString()
+  picEmail?: string;
+
   @IsNotEmpty()
   @IsString()
   picName: string;

@@ -49,6 +49,12 @@ export class BeforeMeetingEntity {
   @Column('simple-array')
   systemRequirement: string[];
 
+  @Column({ nullable: true })
+  picWhatsapp: string;
+
+  @Column({ nullable: true })
+  picEmail: string;
+
   @Column({ type: 'integer', nullable: true })
   budget: number;
 

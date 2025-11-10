@@ -13,7 +13,8 @@ export const dataSourceOptions: DataSourceOptions = {
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'admin',
-  database: process.env.DB_NAME || (isTest ? 'capstone_sales_test' : 'capstone_sales'),
+  database:
+    process.env.DB_NAME || (isTest ? 'capstone_sales_test' : 'capstone_sales'),
   entities: [
     BeforeMeetingEntity,
     AfterMeetingEntity,
@@ -25,8 +26,6 @@ export const dataSourceOptions: DataSourceOptions = {
     : true,
   migrations: ['dist/db/migrations/*.js'],
   logging: isTest ? false : true,
-  // For test environment, optionally drop schema for clean runs
-  dropSchema: process.env.TYPEORM_DROP_SCHEMA === 'true' || false,
 };
 
 const dataSource = new DataSource(dataSourceOptions);

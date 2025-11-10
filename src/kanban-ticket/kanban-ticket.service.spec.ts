@@ -40,6 +40,26 @@ describe('KanbanTicketService', () => {
     beforeRepo = module.get(getRepositoryToken(BeforeMeetingEntity));
   });
 
+  it('groups tickets per stage when querying kanban data', async () => {
+    const qb: any = {
+      leftJoin: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([
+        { ticket_stage: 'QuotationSent', ticket_id: 1 },
+        { ticket_stage: 'ClosedWon', ticket_id: 2 },
+      ]),
+    };
+    (ticketRepo.createQueryBuilder as jest.Mock).mockReturnValue(qb);
+
+    const grouped = await service.getKanbanTicketData('user-1');
+
+    expect(qb.where).toHaveBeenCalledWith('bm.userId = :userId', { userId: 'user-1' });
+    expect(grouped.QuotationSent).toHaveLength(1);
+    expect(grouped.ClosedWon).toHaveLength(1);
+    expect(grouped.FollowUp).toEqual([]);
+  });
+
   it('creates a Kanban ticket with default stage and deal value', async () => {
     afterRepo.findOne.mockResolvedValue({ id: 3, totalAmount: 500 } as any);
     beforeRepo.findOne.mockResolvedValue({ id: 'bm1' } as any);
@@ -48,16 +68,30 @@ describe('KanbanTicketService', () => {
     const saved = { id: 42 } as any;
     ticketRepo.save.mockResolvedValue(saved);
 
-    const res = await service.createKanbanTicket({ afterMeeting: 3, beforeMeeting: 'bm1' });
+    const res = await service.createKanbanTicket({
+      afterMeeting: 3,
+      beforeMeeting: 'bm1',
+      userId: 'user-1',
+    });
     expect(ticketRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         stage: StageStatus.QUOTATION_SENT,
         dealValue: 500,
         afterMeeting: expect.any(Object),
         beforeMeeting: expect.any(Object),
+        user: expect.objectContaining({ id: 'user-1' }),
       }),
     );
     expect(res).toBe(saved);
+  });
+
+  it('throws when createKanbanTicket cannot find linked records', async () => {
+    afterRepo.findOne.mockResolvedValue(null as any);
+    beforeRepo.findOne.mockResolvedValue({} as any);
+
+    await expect(
+      service.createKanbanTicket({ afterMeeting: 1, beforeMeeting: 'bm', userId: 'user-1' }),
+    ).rejects.toThrow('Invalid afterMeeting or beforeMeeting ID');
   });
 
   it('updates funnel position and saves ticket', async () => {
@@ -80,8 +114,30 @@ describe('KanbanTicketService', () => {
       'user-1',
     );
 
-    expect(qb.getOne).toHaveBeenCalled();
+    expect(qb.andWhere).toHaveBeenCalledWith('bm.userId = :userId', { userId: 'user-1' });
     expect(updated.stage).toBe(StageStatus.NEGOTIATION);
     expect(ticketRepo.save).toHaveBeenCalledWith(expect.objectContaining({ id: 7, stage: StageStatus.NEGOTIATION }));
+  });
+
+  it('throws NotFoundException when updateFunnelPosition cannot find ticket', async () => {
+    const qb: any = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(null),
+    };
+    (ticketRepo.createQueryBuilder as jest.Mock).mockReturnValue(qb);
+
+    await expect(
+      service.updateFunnelPosition(
+        {
+          ticketId: 99,
+          destinationStage: StageStatus.CLOSED_WON,
+          sourceStage: StageStatus.FOLLOW_UP,
+          newIndex: 0,
+        } as any,
+        'user-1',
+      ),
+    ).rejects.toThrow('there are no ticket with this id: user-1');
   });
 });

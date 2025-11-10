@@ -3,7 +3,17 @@ import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from './users.entities';
 import { Repository } from 'typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -30,8 +40,92 @@ describe('UsersService', () => {
     repo = module.get<Repository<UserEntity>>(getRepositoryToken(UserEntity)) as jest.Mocked<Repository<UserEntity>>;
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('findByEmail & getUserProfile', () => {
+    it('retrieves user by email', async () => {
+      const entity = { id: 'u1', email: 'user@example.com' } as UserEntity;
+      repo.findOne.mockResolvedValue(entity);
+      await expect(service.findByEmail('user@example.com')).resolves.toBe(entity);
+      expect(repo.findOne).toHaveBeenCalledWith({ where: { email: 'user@example.com' } });
+    });
+
+    it('lists profiles via repository', async () => {
+      const list = [{ id: 'u1' } as UserEntity];
+      repo.find.mockResolvedValue(list);
+      await expect(service.getUserProfile()).resolves.toBe(list);
+      expect(repo.find).toHaveBeenCalled();
+    });
+  });
+
+  describe('createUser & validateUser', () => {
+    it('hashes password then saves user', async () => {
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+      repo.create.mockReturnValue({ email: 'user@example.com', password: 'hashed', role: 'user' } as any);
+      const saved = { id: 'u1' } as UserEntity;
+      repo.save.mockResolvedValue(saved);
+
+      const result = await service.createUser('user@example.com', 'plain', 'admin');
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('plain', 10);
+      expect(repo.create).toHaveBeenCalledWith({
+        email: 'user@example.com',
+        password: 'hashed',
+        role: 'admin',
+      });
+      expect(result).toBe(saved);
+    });
+
+    it('validates user credentials successfully', async () => {
+      const entity = { id: 'u1', email: 'user@example.com', password: 'hashed' } as UserEntity;
+      repo.findOne.mockResolvedValue(entity);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      const result = await service.validateUser('user@example.com', 'plain');
+      expect(result).toBe(entity);
+      expect(bcrypt.compare).toHaveBeenCalledWith('plain', 'hashed');
+    });
+
+    it('throws UnauthorizedException when email is unknown', async () => {
+      repo.findOne.mockResolvedValue(null as any);
+      await expect(service.validateUser('missing@example.com', 'p')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('throws UnauthorizedException when password mismatch', async () => {
+      const entity = { id: 'u1', email: 'user@example.com', password: 'hashed' } as UserEntity;
+      repo.findOne.mockResolvedValue(entity);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.validateUser('user@example.com', 'wrong')).rejects.toThrow('Invalid Password');
+    });
+  });
+
+  describe('createMember', () => {
+    it('throws when mandatory fields missing', async () => {
+      await expect(service.createMember(undefined, undefined, undefined)).rejects.toThrow(
+        'Email, password, and role are required to create a member',
+      );
+    });
+
+    it('hashes password and persists member', async () => {
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hash');
+      repo.create.mockReturnValue({} as any);
+      repo.save.mockResolvedValue({ id: 'member' } as any);
+
+      const result = await service.createMember('member@example.com', 'pass', 'user');
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('pass', 10);
+      expect(repo.create).toHaveBeenCalledWith({
+        email: 'member@example.com',
+        password: 'hash',
+        role: 'user',
+      });
+      expect(result).toEqual({ id: 'member' });
+    });
   });
 
   describe('deleteUserSafely', () => {

@@ -5,7 +5,7 @@ import { UsersService } from 'src/users/users.service';
 import { BeforeMeetingService } from 'src/before-meeting/before-meeting.service';
 import { AfterMeetingService } from 'src/after-meeting/after-meeting.service';
 import { AnalyticsService } from 'src/analytics/analytics.service';
-import { ensureTestDb, createTestUser } from './helpers';
+import { ensureTestDb, createTestUser, resetTestDatabase } from './helpers';
 
 jest.setTimeout(30000);
 
@@ -18,6 +18,7 @@ describe('Integration: AnalyticsService materialized views', () => {
 
   beforeAll(async () => {
     await ensureTestDb();
+    await resetTestDatabase();
     const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = mod.createNestApplication();
     await app.init();
@@ -29,6 +30,7 @@ describe('Integration: AnalyticsService materialized views', () => {
 
   afterAll(async () => {
     await app.close();
+    await resetTestDatabase();
   });
 
   it('initializes views and returns queryable data', async () => {
@@ -81,11 +83,14 @@ describe('Integration: AnalyticsService materialized views', () => {
     const funnel = await analytics.getSalesFunnel();
     const revenue = await analytics.getRevenueTrend();
     const salesman = await analytics.getSalesmanAnalytics();
+    const memberMetrics = await analytics.getTeamMemberMetricsById();
+    const filteredSalesman = await analytics.getSalesmanAnalytics('non-existent-id');
 
     expect(Array.isArray(manager)).toBe(true);
     expect(Array.isArray(funnel)).toBe(true);
     expect(Array.isArray(revenue)).toBe(true);
     expect(Array.isArray(salesman)).toBe(true);
+    expect(Array.isArray(memberMetrics)).toBe(true);
+    expect(filteredSalesman).toEqual(expect.any(Array));
   });
 });
-

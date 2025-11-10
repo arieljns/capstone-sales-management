@@ -1,5 +1,9 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
+import { RolesGuard } from 'src/auth/guards/roles.guards';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { Req } from '@nestjs/common';
 
 @Controller('analytics')
 export class AnalyticsController {
@@ -15,9 +19,12 @@ export class AnalyticsController {
     return this.analyticsService.getSalesFunnel();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
   @Get('user')
-  getUserAnalytics() {
-    return this.analyticsService.getUserAnalytics();
+  getUserAnalytics(@Req() req) {
+    console.log('user analytics get triggered')
+    return this.analyticsService.getUserAnalytics(req.user.userId);
   }
 
   @Get('revenue')
