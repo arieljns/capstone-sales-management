@@ -31,7 +31,14 @@ export class AfterMeetingService {
       const qb = this.AfterMeetingRepo.createQueryBuilder('afterMeeting')
         .leftJoinAndSelect('afterMeeting.user', 'user')
         .leftJoin('afterMeeting.beforeMeeting', 'beforeMeeting')
-        .addSelect(['beforeMeeting.id', 'beforeMeeting.name'])
+        .addSelect([
+          'beforeMeeting.id',
+          'beforeMeeting.name',
+          'beforeMeeting.picName',
+          'beforeMeeting.picRole',
+          'beforeMeeting.picEmail',
+          'beforeMeeting.picWhatsapp',
+        ])
         .where('user.id = :userId', { userId });
 
       const results = await qb.getMany();

@@ -13,7 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { RolesGuard } from './auth/guards/roles.guards';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
 import { AnalyticsModule } from './analytics/analytics.module';
-import { CrmModule } from './crm/crm.module';
+import { AirtableModule } from './modules/airtable/airtable.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { CrmModule } from './crm/crm.module';
     UsersModule,
     AuthModule,
     AnalyticsModule,
-    CrmModule,
+    AirtableModule,
   ],
   controllers: [AppController],
   providers: [AppService],
