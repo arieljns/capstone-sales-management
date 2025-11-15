@@ -9,7 +9,7 @@ users AS (
   SELECT id FROM public.user_entity
 ),
 
--- ===================== REVENUE =====================
+
 revenue AS (
   SELECT 
     u.id AS user_id,
@@ -28,7 +28,6 @@ revenue AS (
   GROUP BY u.id
 ),
 
--- ===================== TARGET =====================
 target AS (
   SELECT 
     u.id AS user_id,
@@ -42,7 +41,7 @@ target AS (
   GROUP BY u.id
 ),
 
--- ===================== MEETINGS =====================
+
 meetings AS (
   SELECT 
     u.id AS user_id,
@@ -58,7 +57,7 @@ meetings AS (
   GROUP BY u.id
 ),
 
--- ===================== SENTIMENT =====================
+
 sentiment AS (
   SELECT 
     u.id AS user_id,
@@ -72,7 +71,6 @@ sentiment AS (
   GROUP BY u.id
 ),
 
--- ===================== DEALS =====================
 deals AS (
   SELECT 
     u.id AS user_id,
@@ -84,7 +82,7 @@ deals AS (
   GROUP BY u.id
 ),
 
--- ===================== FUNNEL (2-layer aggregation) =====================
+
 funnel_stage AS (
   SELECT 
     u.id AS user_id,
@@ -113,7 +111,6 @@ funnel AS (
   GROUP BY user_id
 ),
 
--- ===================== TREND (2-layer aggregation) =====================
 trend_stage AS (
   SELECT 
     u.id AS user_id,
@@ -142,7 +139,6 @@ trend AS (
   GROUP BY user_id
 )
 
--- ===================== FINAL SELECT =====================
 SELECT 
   u.id AS "userId",
   json_build_object(

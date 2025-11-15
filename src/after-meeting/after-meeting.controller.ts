@@ -35,7 +35,8 @@ export class AfterMeetingController {
   postAfterMeetingData(@Param('id') id: number) {
     return this.afterMeetingService.findAfterMeetingDataById(id);
   }
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
   @Delete(':id')
   deleteAfterMeetingData(@Param('id') id: number) {
     return this.afterMeetingService.deleteAfterMeetingData(id);
