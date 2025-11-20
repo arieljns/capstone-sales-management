@@ -32,7 +32,7 @@ export class AnalyticsService {
   }
 
   async getManagerAnalytics(): Promise<any[]> {
-    return this.dataSource.query('SELECT * FROM public.mv_manager_analytics');
+    return this.dataSource.query('SELECT * FROM admin_weekly_summary_view');
   }
 
   async getSalesFunnel(): Promise<any[]> {

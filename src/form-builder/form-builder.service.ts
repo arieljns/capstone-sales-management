@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
+import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 import { Repository } from 'typeorm';
 @Injectable()
 export class FormBuilderService {
   constructor(
-    @InjectRepository(AfterMeetingEntity)
-    private afterMeetingRepo: Repository<AfterMeetingEntity>,
+    @InjectRepository(BeforeMeetingEntity)
+    private readonly beforeMeetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
 
-  async getFormData(id: number): Promise<AfterMeetingEntity> {
+  async getFormData(id: number): Promise<any> {
     try {
-      const meeting = await this.afterMeetingRepo.findOne({
-        where: { id },
-      });
-      if (!meeting) {
-        throw new Error('there are no meeting with that id');
-      }
-      return meeting;
+      const quotationData = await this.beforeMeetingRepo
+        .createQueryBuilder('beforeMeeting')
+        .leftJoinAndSelect('beforeMeeting.afterMeeting', 'afterMeeting')
+        .where('beforeMeeting.id = :id', { id })
+        .getOne();
+      return quotationData;
     } catch (error) {
-      console.error('there are error', error);
-      throw new Error('there are issue when retrieving data');
+      console.error('Error fetching form data:', error);
+      throw new Error('Failed to join the quotation data');
     }
   }
 }

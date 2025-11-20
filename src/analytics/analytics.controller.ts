@@ -9,7 +9,7 @@ import { Req } from '@nestjs/common';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  @Get()
+  @Get('/manager/summary')
   getManagerAnalytics() {
     return this.analyticsService.getManagerAnalytics();
   }

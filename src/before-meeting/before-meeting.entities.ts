@@ -1,5 +1,6 @@
 import { KanbanTicketEntity } from 'src/kanban-ticket/kanban-ticket.entities';
 import { UserEntity } from 'src/users/users.entities';
+import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -69,6 +70,12 @@ export class BeforeMeetingEntity {
     (kanbanTicket) => kanbanTicket.beforeMeeting,
   )
   kanbanTicket: KanbanTicketEntity;
+
+  @OneToOne(
+    () => AfterMeetingEntity,
+    (afterMeeting) => afterMeeting.beforeMeeting,
+  )
+  afterMeeting: AfterMeetingEntity;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
