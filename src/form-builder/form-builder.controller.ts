@@ -6,7 +6,7 @@ export class FormBuilderController {
   constructor(private readonly formBuilderService: FormBuilderService) {}
 
   @Get(':id')
-  getFormData(@Param('id') id: number) {
+  getFormData(@Param('id') id: string) {
     return this.formBuilderService.getFormData(id);
   }
 }

@@ -7,7 +7,6 @@ import {
   Post,
   Req,
   UnauthorizedException,
-  NotFoundException,
 } from '@nestjs/common';
 import { AfterMeetingService } from './after-meeting.service';
 import { afterMeetingDto } from './after-meeting.dto';

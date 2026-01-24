@@ -9,7 +9,7 @@ export class FormBuilderService {
     private readonly beforeMeetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
 
-  async getFormData(id: number): Promise<any> {
+  async getFormData(id: string): Promise<any> {
     try {
       const quotationData = await this.beforeMeetingRepo
         .createQueryBuilder('beforeMeeting')
