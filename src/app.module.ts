@@ -14,6 +14,7 @@ import { RolesGuard } from './auth/guards/roles.guards';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AirtableModule } from './modules/airtable/airtable.module';
+import { BusinessLogModule } from './business-log/business-log.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AirtableModule } from './modules/airtable/airtable.module';
     AuthModule,
     AnalyticsModule,
     AirtableModule,
+    BusinessLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

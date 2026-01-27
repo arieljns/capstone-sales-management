@@ -15,7 +15,6 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { RolesGuard } from 'src/auth/guards/roles.guards';
 import { Roles } from 'src/auth/decorator/roles.decorator';
-import { use } from 'passport';
 
 @Controller('/after')
 export class AfterMeetingController {
