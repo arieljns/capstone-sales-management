@@ -15,7 +15,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AirtableModule } from './modules/airtable/airtable.module';
 import { BusinessLogModule } from './business-log/business-log.module';
-
+import { LoggingModule } from './infrastructure/logging/logging.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -29,6 +29,7 @@ import { BusinessLogModule } from './business-log/business-log.module';
     AnalyticsModule,
     AirtableModule,
     BusinessLogModule,
+    LoggingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
