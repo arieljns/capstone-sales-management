@@ -13,9 +13,11 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AfterMeetingService {
+  private readonly logger = new Logger(AfterMeetingService.name);
   constructor(
     @InjectRepository(AfterMeetingEntity)
     private AfterMeetingRepo: Repository<AfterMeetingEntity>,
@@ -43,8 +45,7 @@ export class AfterMeetingService {
 
       const results = await qb.getMany();
       return results;
-    } catch (error) {
-      console.error('Error joining afterMeeting and beforeMeeting:', error);
+    } catch {
       throw new UnauthorizedException('Could not get meeting data');
     }
   }
@@ -59,8 +60,7 @@ export class AfterMeetingService {
       });
 
       return results;
-    } catch (error) {
-      console.error('Error fetching user afterMeeting data:', error);
+    } catch {
       throw new UnauthorizedException('Could not fetch after meeting data');
     }
   }
@@ -74,8 +74,7 @@ export class AfterMeetingService {
         throw new NotFoundException('there are no data with coressponding id');
       }
       return afterMeetingData;
-    } catch (error) {
-      console.error('there are issue when creating after meeting data:', error);
+    } catch {
       throw new UnauthorizedException(
         'there are some issue when creating data ',
       );
@@ -89,8 +88,7 @@ export class AfterMeetingService {
         throw new NotFoundException('there are no meeting with this id');
       }
       return deleteData;
-    } catch (error) {
-      console.error('error occured when deleting data', error);
+    } catch {
       throw new Error('there are error when deleting data ');
     }
   }
@@ -108,8 +106,7 @@ export class AfterMeetingService {
       }
       Object.assign(meetingData, data);
       return this.AfterMeetingRepo.save(meetingData);
-    } catch (error) {
-      console.error('error occured', error);
+    } catch {
       throw new Error(
         'there are error when attempting to create after meeting data',
       );
@@ -142,8 +139,7 @@ export class AfterMeetingService {
       });
 
       return savedMeeting;
-    } catch (error: unknown) {
-      console.error('Error in createMeetingDebriefRecord:', error);
+    } catch {
       throw new InternalServerErrorException(
         'Failed to create meeting debrief record',
       );
