@@ -11,6 +11,7 @@ export class BeforeMeetingService {
     @InjectRepository(BeforeMeetingEntity)
     private beforeMeetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
+
   async getMeetings(userId): Promise<BeforeMeetingEntity[]> {
     console.log(typeof userId, 'ini user id dari service');
     return await this.beforeMeetingRepo.find({
@@ -50,30 +51,22 @@ export class BeforeMeetingService {
     beforeMeetingForms: csvHandlerDto[] | beforeMeetingDto,
     userId,
   ): Promise<Record<string, any>> {
-    try {
-      console.log('Creating meeting(s):', beforeMeetingForms, userId);
-      const formsArray = Array.isArray(beforeMeetingForms)
-        ? beforeMeetingForms
-        : [beforeMeetingForms];
-      const newMeetings = this.beforeMeetingRepo.create(
-        formsArray.map((form) => ({
-          ...form,
-          user: { id: userId },
-        })),
-      );
-      const savedMeetings = await this.beforeMeetingRepo.insert(newMeetings);
+    console.log('Creating meeting(s):', beforeMeetingForms, userId);
+    const formsArray = Array.isArray(beforeMeetingForms)
+      ? beforeMeetingForms
+      : [beforeMeetingForms];
+    const newMeetings = this.beforeMeetingRepo.create(
+      formsArray.map((form) => ({
+        ...form,
+        user: { id: userId },
+      })),
+    );
+    const savedMeetings = await this.beforeMeetingRepo.insert(newMeetings);
 
-      return {
-        success: true,
-        data: savedMeetings,
-      };
-    } catch {
-      return {
-        success: false,
-        message: 'Failed to create meeting(s)',
-        error: error.message,
-      };
-    }
+    return {
+      success: true,
+      data: savedMeetings,
+    };
   }
 
   async updateMeeting(

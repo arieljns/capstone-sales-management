@@ -12,9 +12,9 @@ async function bootstrap() {
     }),
   );
 
-  const logger = app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
 
-  app.use(new GlobalExceptionFilter(logger));
+  app.useGlobalFilters(new GlobalExceptionFilter(logger));
 
   app.enableCors({
     origin: '*',

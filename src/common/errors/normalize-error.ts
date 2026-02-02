@@ -9,7 +9,7 @@ export function normalizeError(
     const status = exception.getStatus();
 
     return {
-      code: `HTTP_${status}`,
+      code: `HTTP-${status}`,
       message: exception.message,
       statusCode: status,
       severity: status >= 500 ? 'ERROR' : 'WARN',
