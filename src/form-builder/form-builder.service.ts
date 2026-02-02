@@ -17,8 +17,7 @@ export class FormBuilderService {
         .where('beforeMeeting.id = :id', { id })
         .getOne();
       return quotationData;
-    } catch (error) {
-      console.error('Error fetching form data:', error);
+    } catch {
       throw new Error('Failed to join the quotation data');
     }
   }

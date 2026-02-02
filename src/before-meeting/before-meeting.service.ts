@@ -27,8 +27,7 @@ export class BeforeMeetingService {
         throw new Error(`Meeting with id ${id} not found`);
       }
       return getMeetingById;
-    } catch (error) {
-      console.error('Error fetching meeting by ID:', error);
+    } catch {
       throw new Error('An error occurred while fetching the meeting');
     }
   }
@@ -42,8 +41,7 @@ export class BeforeMeetingService {
       meeting.isMeetingStage = true;
       await this.beforeMeetingRepo.save(meeting);
       return meeting;
-    } catch (error) {
-      console.error('Error moving meeting stage:', error);
+    } catch {
       throw new Error('An error occurred while moving the meeting stage');
     }
   }
@@ -69,8 +67,7 @@ export class BeforeMeetingService {
         success: true,
         data: savedMeetings,
       };
-    } catch (error) {
-      console.error(error);
+    } catch {
       return {
         success: false,
         message: 'Failed to create meeting(s)',
@@ -101,8 +98,7 @@ export class BeforeMeetingService {
       }
 
       return updatedMeeting;
-    } catch (error) {
-      console.error('Error updating meeting:', error);
+    } catch {
       throw new Error('An error occurred while updating the meeting');
     }
   }
@@ -118,10 +114,8 @@ export class BeforeMeetingService {
         message: 'deleted successfully',
         deletedId: id,
       };
-    } catch (error) {
-      if (error) {
-        throw new Error('there are some issue when deleting the meeting');
-      }
+    } catch {
+      throw new Error('there are some issue when deleting the meeting');
     }
   }
 }
