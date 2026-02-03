@@ -52,97 +52,82 @@ export class AfterMeetingService {
   async getAllAfterMeetingDataByUser(
     userId: string,
   ): Promise<AfterMeetingEntity[]> {
-    try {
-      const results = await this.AfterMeetingRepo.find({
-        where: { user: { id: userId } },
-        order: { createdAt: 'DESC' },
-      });
-
-      return results;
-    } catch {
-      throw new UnauthorizedException('Could not fetch after meeting data');
+    const results = await this.AfterMeetingRepo.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
+    if (results.length === 0) {
+      throw ErrorFactory.resourceNotFound('after meeting data', { userId });
     }
+    return results;
   }
 
   async findAfterMeetingDataById(id: number): Promise<AfterMeetingEntity> {
-    try {
-      const afterMeetingData = await this.AfterMeetingRepo.findOne({
-        where: { id },
+    const afterMeetingData = await this.AfterMeetingRepo.findOne({
+      where: { id },
+    });
+    if (!afterMeetingData) {
+      throw ErrorFactory.resourceNotFound('after meeting data by id', {
+        id,
       });
-      if (!afterMeetingData) {
-        throw new NotFoundException('there are no data with coressponding id');
-      }
-      return afterMeetingData;
-    } catch {
-      throw new UnauthorizedException(
-        'there are some issue when creating data ',
-      );
     }
+    return afterMeetingData;
   }
 
   async deleteAfterMeetingData(id: number): Promise<DeleteResult> {
-    try {
-      const deleteData = await this.AfterMeetingRepo.delete(id);
-      if (!deleteData) {
-        throw new NotFoundException('there are no meeting with this id');
-      }
-      return deleteData;
-    } catch {
-      throw new Error('there are error when deleting data ');
+    const deleteData = await this.AfterMeetingRepo.delete(id);
+    if (!deleteData) {
+      throw ErrorFactory.resourceNotFound(
+        'resource to delete after meeting data',
+        { id },
+      );
     }
+    return deleteData;
   }
 
   async createMeetingData(
     id: number,
     data: afterMeetingDto,
   ): Promise<AfterMeetingEntity> {
-    try {
-      const meetingData = await this.AfterMeetingRepo.findOne({
-        where: { id },
+    const meetingData = await this.AfterMeetingRepo.findOne({
+      where: { id },
+    });
+    if (!meetingData) {
+      throw ErrorFactory.resourceNotFound('after meeting data to update', {
+        id,
       });
-      if (!meetingData) {
-        throw new NotFoundException('there are no data with related id');
-      }
-      Object.assign(meetingData, data);
-      return this.AfterMeetingRepo.save(meetingData);
-    } catch {
-      throw new Error(
-        'there are error when attempting to create after meeting data',
-      );
     }
+    Object.assign(meetingData, data);
+    return this.AfterMeetingRepo.save(meetingData);
   }
 
   async createMeetingDebriefRecord(
     data: afterMeetingDto,
     userId: string,
   ): Promise<AfterMeetingEntity> {
-    try {
-      const beforeMeeting = await this.beforeMeetingRepo.findOne({
-        where: { id: data.beforeMeeting },
-      });
+    const beforeMeeting = await this.beforeMeetingRepo.findOne({
+      where: { id: data.beforeMeeting },
+    });
 
-      if (!beforeMeeting) {
-        throw new BadRequestException('No before meeting found with this ID');
-      }
-
-      const newMeeting = this.AfterMeetingRepo.create({
-        ...data,
-        beforeMeeting,
-        user: { id: userId },
+    if (!beforeMeeting) {
+      throw ErrorFactory.resourceNotFound('before meeting data', {
+        beforeMeetingId: data.beforeMeeting,
       });
-      const savedMeeting = await this.AfterMeetingRepo.save(newMeeting);
-      await this.kanbanTicketService.createKanbanTicket({
-        afterMeeting: savedMeeting.id,
-        beforeMeeting: beforeMeeting.id,
-        userId,
-      });
-
-      return savedMeeting;
-    } catch {
-      throw new InternalServerErrorException(
-        'Failed to create meeting debrief record',
-      );
     }
+
+    const newMeeting = this.AfterMeetingRepo.create({
+      ...data,
+      beforeMeeting,
+      user: { id: userId },
+    });
+    const savedMeeting = await this.AfterMeetingRepo.save(newMeeting);
+    await this.kanbanTicketService.createKanbanTicket({
+      afterMeeting: savedMeeting.id,
+      beforeMeeting: beforeMeeting.id,
+      userId,
+    });
+
+    return savedMeeting;
   }
 
   async getMeetingDataJoin() {
