@@ -4,6 +4,7 @@ import { BeforeMeetingEntity } from './before-meeting.entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { csvHandlerDto } from './csv-upload.dto';
+import { ErrorFactory } from 'src/common/errors/error-factory';
 
 @Injectable()
 export class BeforeMeetingService {
@@ -13,38 +14,33 @@ export class BeforeMeetingService {
   ) {}
 
   async getMeetings(userId): Promise<BeforeMeetingEntity[]> {
-    console.log(typeof userId, 'ini user id dari service');
-    return await this.beforeMeetingRepo.find({
+    const res = await this.beforeMeetingRepo.find({
       where: { user: { id: userId } },
     });
+    if (!res) {
+      throw ErrorFactory.resourceNotFound('meetings', { userId });
+    }
+    return res;
   }
 
   async getMeetingById(id: string): Promise<BeforeMeetingEntity> {
-    try {
-      const getMeetingById = await this.beforeMeetingRepo.findOne({
-        where: { id },
-      });
-      if (!getMeetingById) {
-        throw new Error(`Meeting with id ${id} not found`);
-      }
-      return getMeetingById;
-    } catch {
-      throw new Error('An error occurred while fetching the meeting');
+    const getMeetingById = await this.beforeMeetingRepo.findOne({
+      where: { id },
+    });
+    if (!getMeetingById) {
+      throw ErrorFactory.resourceNotFound('meeting', { id });
     }
+    return getMeetingById;
   }
 
   async moveMeetingStage(id: string): Promise<BeforeMeetingEntity> {
-    try {
-      const meeting = await this.beforeMeetingRepo.findOne({ where: { id } });
-      if (!meeting) {
-        throw new Error('no meeting found');
-      }
-      meeting.isMeetingStage = true;
-      await this.beforeMeetingRepo.save(meeting);
-      return meeting;
-    } catch {
-      throw new Error('An error occurred while moving the meeting stage');
+    const meeting = await this.beforeMeetingRepo.findOne({ where: { id } });
+    if (!meeting) {
+      throw ErrorFactory.resourceNotFound('move meeting stage', { id });
     }
+    meeting.isMeetingStage = true;
+    await this.beforeMeetingRepo.save(meeting);
+    return meeting;
   }
 
   async createMeeting(
@@ -73,42 +69,34 @@ export class BeforeMeetingService {
     id: string,
     updateData: Partial<BeforeMeetingEntity>,
   ): Promise<BeforeMeetingEntity> {
-    try {
-      const meeting = await this.beforeMeetingRepo.findOne({ where: { id } });
+    const meeting = await this.beforeMeetingRepo.findOne({ where: { id } });
 
-      if (!meeting) {
-        throw new Error('Meeting not found');
-      }
-
-      await this.beforeMeetingRepo.update(id, updateData);
-
-      const updatedMeeting = await this.beforeMeetingRepo.findOne({
-        where: { id },
-      });
-
-      if (!updatedMeeting) {
-        throw new Error('Failed to retrieve updated meeting');
-      }
-
-      return updatedMeeting;
-    } catch {
-      throw new Error('An error occurred while updating the meeting');
+    if (!meeting) {
+      throw ErrorFactory.resourceNotFound('meeting to update', { id });
     }
+
+    await this.beforeMeetingRepo.update(id, updateData);
+
+    const updatedMeeting = await this.beforeMeetingRepo.findOne({
+      where: { id },
+    });
+
+    if (!updatedMeeting) {
+      throw new Error('Failed to retrieve updated meeting');
+    }
+
+    return updatedMeeting;
   }
 
   async deleteMeeting(id: number) {
-    try {
-      const deleteMeetingData = await this.beforeMeetingRepo.delete(id);
+    const deleteMeetingData = await this.beforeMeetingRepo.delete(id);
 
-      if (!deleteMeetingData) {
-        throw new Error('there are no data to be delete');
-      }
-      return {
-        message: 'deleted successfully',
-        deletedId: id,
-      };
-    } catch {
-      throw new Error('there are some issue when deleting the meeting');
+    if (!deleteMeetingData) {
+      throw ErrorFactory.resourceNotFound('meeting to delete', { id });
     }
+    return {
+      message: 'deleted successfully',
+      deletedId: id,
+    };
   }
 }

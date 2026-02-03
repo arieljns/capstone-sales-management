@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 import { Repository } from 'typeorm';
+import { ErrorFactory } from 'src/common/errors/error-factory';
 @Injectable()
 export class FormBuilderService {
   constructor(
@@ -10,15 +11,14 @@ export class FormBuilderService {
   ) {}
 
   async getFormData(id: string): Promise<any> {
-    try {
-      const quotationData = await this.beforeMeetingRepo
-        .createQueryBuilder('beforeMeeting')
-        .leftJoinAndSelect('beforeMeeting.afterMeeting', 'afterMeeting')
-        .where('beforeMeeting.id = :id', { id })
-        .getOne();
-      return quotationData;
-    } catch {
-      throw new Error('Failed to join the quotation data');
+    const quotationData = await this.beforeMeetingRepo
+      .createQueryBuilder('beforeMeeting')
+      .leftJoinAndSelect('beforeMeeting.afterMeeting', 'afterMeeting')
+      .where('beforeMeeting.id = :id', { id })
+      .getOne();
+    if (!quotationData) {
+      throw ErrorFactory.resourceNotFound('form data', { id });
     }
+    return quotationData;
   }
 }
