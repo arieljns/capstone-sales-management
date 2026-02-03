@@ -14,6 +14,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
+import { ErrorFactory } from 'src/common/errors/error-factory';
 
 @Injectable()
 export class AfterMeetingService {
@@ -29,25 +30,23 @@ export class AfterMeetingService {
   ) {}
 
   async getMeetingDataWithJoin(userId: string): Promise<any[]> {
-    try {
-      const qb = this.AfterMeetingRepo.createQueryBuilder('afterMeeting')
-        .leftJoinAndSelect('afterMeeting.user', 'user')
-        .leftJoin('afterMeeting.beforeMeeting', 'beforeMeeting')
-        .addSelect([
-          'beforeMeeting.id',
-          'beforeMeeting.name',
-          'beforeMeeting.picName',
-          'beforeMeeting.picRole',
-          'beforeMeeting.picEmail',
-          'beforeMeeting.picWhatsapp',
-        ])
-        .where('user.id = :userId', { userId });
-
-      const results = await qb.getMany();
-      return results;
-    } catch {
-      throw new UnauthorizedException('Could not get meeting data');
+    const qb = this.AfterMeetingRepo.createQueryBuilder('afterMeeting')
+      .leftJoinAndSelect('afterMeeting.user', 'user')
+      .leftJoin('afterMeeting.beforeMeeting', 'beforeMeeting')
+      .addSelect([
+        'beforeMeeting.id',
+        'beforeMeeting.name',
+        'beforeMeeting.picName',
+        'beforeMeeting.picRole',
+        'beforeMeeting.picEmail',
+        'beforeMeeting.picWhatsapp',
+      ])
+      .where('user.id = :userId', { userId });
+    if (!qb) {
+      throw ErrorFactory.resourceNotFound(qb, { userId });
     }
+    const results = await qb.getMany();
+    return results;
   }
 
   async getAllAfterMeetingDataByUser(
