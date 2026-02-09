@@ -16,10 +16,12 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { AirtableModule } from './modules/airtable/airtable.module';
 import { BusinessLogModule } from './business-log/business-log.module';
 import { LoggingModule } from './infrastructure/logging/logging.module';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(dataSourceOptions),
+    ScheduleModule.forRoot(),
     BeforeMeetingModule,
     AfterMeetingModule,
     FormBuilderModule,

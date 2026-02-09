@@ -1,18 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AfterMeetingEntity } from './after-meeting.entities';
 import { DeleteResult, Repository } from 'typeorm';
 import { afterMeetingDto } from './after-meeting.dto';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 import { KanbanTicketService } from 'src/kanban-ticket/kanban-ticket.service';
-import {
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import { ErrorFactory } from 'src/common/errors/error-factory';
 

@@ -6,6 +6,7 @@ import { AfterMeetingEntity } from 'src/after-meeting/after-meeting.entities';
 import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 import { Ticket, Columns } from 'src/common/type/kanban.type';
 import { UpdateKanbanDto } from './dto/update-kanban.dto';
+import { ErrorFactory } from 'src/common/errors/error-factory';
 
 @Injectable()
 export class KanbanTicketService {
@@ -84,7 +85,13 @@ export class KanbanTicketService {
     });
 
     if (!afterMeetingData || !beforeMeetingData) {
-      throw new Error('Invalid afterMeeting or beforeMeeting ID');
+      throw ErrorFactory.resourceNotFound(
+        'after meeting or before meeting data',
+        {
+          afterMeetingId: afterMeeting,
+          beforeMeetingId: beforeMeeting,
+        },
+      );
     }
 
     const ticket = this.kanbanTicketRepo.create({
@@ -102,7 +109,7 @@ export class KanbanTicketService {
     body: UpdateKanbanDto,
     userId,
   ): Promise<KanbanTicketEntity> {
-    const { destinationStage, newIndex, sourceStage, ticketId } = body;
+    const { destinationStage, ticketId } = body;
     console.log('this is the user that make the request:', userId);
     const ticket = await this.kanbanTicketRepo
       .createQueryBuilder('ticket')
@@ -112,9 +119,9 @@ export class KanbanTicketService {
       .getOne();
 
     if (!ticket) {
-      throw new NotFoundException(
-        `there are no ticket with this id: ${userId}`,
-      );
+      throw ErrorFactory.resourceNotFound('kanban ticket to update', {
+        ticketId,
+      });
     }
 
     ticket.stage = destinationStage;
