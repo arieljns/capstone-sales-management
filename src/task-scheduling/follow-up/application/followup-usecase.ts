@@ -1,18 +1,27 @@
+import { FollowupReminderReader } from '../reader/followup-reader';
 import { Injectable } from '@nestjs/common';
-import { OpportunityReader } from '../reader/followup-reader';
-import { FOLLOW_UP_SLA_BY_STAGE } from '../domain/followup-policy';
 
 @Injectable()
-export class EvaluateFollowUpUseCase {
-  constructor(private readonly opportunityReader: OpportunityReader) {}
+export class GetStalledMeetingsUseCase {
+  constructor(private readonly reader: FollowupReminderReader) {}
 
-  async execute(salesRepId: string) {
-    const rows = await this.opportunityReader.findStalledBySalesRep(salesRepId);
+  async execute(userId: number) {
+    const rows = await this.reader.findMeetingWithFollowupGap(userId);
 
-    return rows.filter((row) => {
-      const slaDays = FOLLOW_UP_SLA_BY_STAGE[row.stage];
-      if (!slaDays) return false;
-      return row.daysInStage > slaDays;
-    });
+    return rows
+      .filter((row) => {
+        const sla = STAGE_SLA_DAYS[row.stage];
+        return sla > 0 && row.daysInStage > sla;
+      })
+      .map((row) => ({
+        meetingId: row.meetingId,
+        meetingName: row.meetingName,
+        ticketId: row.ticketId,
+        stage: row.stage,
+        daysInStage: row.daysInStage,
+        overdueDays: row.daysInStage - STAGE_SLA_DAYS[row.stage],
+        meetingCreatedAt: row.meetingCreatedAt,
+      }))
+      .sort((a, b) => b.overdueDays - a.overdueDays);
   }
 }

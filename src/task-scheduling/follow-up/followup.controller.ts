@@ -1,9 +1,10 @@
 import { Controller } from '@nestjs/common';
 import { Req } from '@nestjs/common';
+import { FollowUpScheduler } from './application/followup-scheduler';
 
 @Controller('/followup-gap')
 export class FollowUpController {
-  constructor() {}
+  constructor(private followUpScheduler: FollowUpScheduler) {}
 
   getFollowUpGaps(@Req() req) {
     const salesRepId = req.user.userId;
@@ -11,5 +12,7 @@ export class FollowUpController {
     if (!salesRepId) {
       throw new Error('There is no sales rep id');
     }
+
+    return this.followUpScheduler.handleCron();
   }
 }

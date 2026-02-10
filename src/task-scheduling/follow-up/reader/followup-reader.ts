@@ -1,33 +1,43 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { KanbanTicketEntity } from 'src/kanban-ticket/kanban-ticket.entities';
+import { BeforeMeetingEntity } from 'src/before-meeting/before-meeting.entities';
 
 @Injectable()
-export class OpportunityReader {
+export class FollowupReminderReader {
   constructor(
-    @InjectRepository(KanbanTicketEntity)
-    private readonly repo: Repository<KanbanTicketEntity>,
+    @InjectRepository(BeforeMeetingEntity)
+    private readonly meetingRepo: Repository<BeforeMeetingEntity>,
   ) {}
 
-  async findStalledBySalesRep(salesRepId: string): Promise<
-    {
-      opportunityId: string;
-      stage: string;
-      enteredStageAt: Date;
-      daysInStage: number;
-    }[]
-  > {
-    return this.repo
-      .createQueryBuilder('o')
-      .innerJoin('o.kanban', 'k')
-      .where('o.sales_rep_id = :salesRepId', { salesRepId })
-      .andWhere('o.status = :status', { status: 'OPEN' })
+  async findMeetingWithFollowupGap(userId: number) {
+    return this.meetingRepo
+      .createQueryBuilder('bm')
+      .innerJoin('bm.kanbanTicket', 'kt')
+      .innerJoin('kt.user', 'user')
+      .where('user.id = :userId', { userId })
+      .andWhere('kt.stage NOT IN (:...closed)', {
+        closed: [StageStatus.CLOSED_WON, StageStatus.CLOSED_LOST],
+      })
+      .andWhere((qb) => {
+        const sub = qb
+          .subQuery()
+          .select('MAX(bm2.createdAt)')
+          .from(BeforeMeetingEntity, 'bm2')
+          .where('bm2.kanbanTicket = kt.id')
+          .getQuery();
+
+        return 'bm.createdAt = ' + sub;
+      })
+
       .select([
-        'o.id AS "opportunityId"',
-        'k.stage AS stage',
-        'k.updated_at AS "enteredStageAt"',
-        `DATE_PART('day', NOW() - k.updated_at) AS "daysInStage"`,
+        'bm.id AS "meetingId"',
+        'bm.name AS "meetingName"',
+        'bm.createdAt AS "meetingCreatedAt"',
+        'kt.id AS "ticketId"',
+        'kt.stage AS stage',
+        'kt.updatedAt AS "stageEnteredAt"',
+        `DATE_PART('day', NOW() - kt.updatedAt) AS "daysInStage"`,
       ])
       .getRawMany();
   }
