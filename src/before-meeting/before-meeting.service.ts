@@ -5,12 +5,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { csvHandlerDto } from './csv-upload.dto';
 import { ErrorFactory } from 'src/common/errors/error-factory';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class BeforeMeetingService {
   constructor(
     @InjectRepository(BeforeMeetingEntity)
     private beforeMeetingRepo: Repository<BeforeMeetingEntity>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async getMeetings(userId): Promise<BeforeMeetingEntity[]> {
@@ -40,6 +42,10 @@ export class BeforeMeetingService {
     }
     meeting.isMeetingStage = true;
     await this.beforeMeetingRepo.save(meeting);
+    this.eventEmitter.emit('beforeMeeting.stageUpdated', {
+      meetingId: meeting.id,
+      occuredAt: new Date(),
+    });
     return meeting;
   }
 

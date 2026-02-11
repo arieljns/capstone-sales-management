@@ -10,8 +10,6 @@ import { KanbanTicketModule } from './kanban-ticket/kanban-ticket.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { RolesGuard } from './auth/guards/roles.guards';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AirtableModule } from './modules/airtable/airtable.module';
 import { BusinessLogModule } from './business-log/business-log.module';
