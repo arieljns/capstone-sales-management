@@ -43,6 +43,7 @@ export class BeforeMeetingService {
     meeting.isMeetingStage = true;
     await this.beforeMeetingRepo.save(meeting);
     this.eventEmitter.emit('beforeMeeting.stageUpdated', {
+      owner: meeting.user.id,
       meetingId: meeting.id,
       occuredAt: new Date(),
     });
@@ -64,6 +65,12 @@ export class BeforeMeetingService {
       })),
     );
     const savedMeetings = await this.beforeMeetingRepo.insert(newMeetings);
+
+    this.eventEmitter.emit('beforeMeeting.crated', {
+      owner: userId,
+      meetingId: savedMeetings.id,
+      occuredAt: new Date(),
+    });
 
     return {
       success: true,
@@ -90,6 +97,12 @@ export class BeforeMeetingService {
     if (!updatedMeeting) {
       throw new Error('Failed to retrieve updated meeting');
     }
+
+    this.eventEmitter.emit('beforeMeeting.updated', {
+      owner: updatedMeeting.user.id,
+      meetingId: updatedMeeting.id,
+      occuredAt: new Date(),
+    });
 
     return updatedMeeting;
   }
